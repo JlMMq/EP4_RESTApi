@@ -91,6 +91,18 @@ const getProducto = async (req, res)=>{
     }
 };
 
+/*
+- ENTRADA
+    {
+        "id" : 5,
+        "nombre": "XIAOMI",
+        "descripcion": "telefono xiaomi 25MPX",
+        "precio": "750",
+        "stock": "5",
+        "idCategoria" : "1"
+    }
+*/
+
 const updateProducto = async (req, res) =>{
     try
     {
