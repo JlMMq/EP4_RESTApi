@@ -131,7 +131,7 @@ const deleteProducto = async (req,res) => {
         res.status(500);
         res.send(error.message);
     }
-}
+};
 
 export const methods = {
     insertProducto,

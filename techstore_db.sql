@@ -371,6 +371,8 @@ BEGIN
             SET int_estado = estado,
 				str_desestado = new_estado
 			WHERE int_idOrden = id;
+			set cod_err = 1;
+            set message = "La orden se actualizo correctamente.";
         END IF;
     ELSE
 		set cod_err = -1;
@@ -398,8 +400,9 @@ BEGIN
     select 1 into flag from tb_Ordenes where int_idOrden = id and int_estado in (3, 4);
     
     IF flag = 1 THEN
-		DELETE FROM tb_Ordenes WHERE int_idOrden = id;
 		DELETE FROM Tb_Ordenes_Detalle WHERE int_idOrden = id;
+        DELETE FROM tb_Ordenes WHERE int_idOrden = id;
+		
         SET rows_affected = ROW_COUNT();
         IF rows_affected > 0 THEN
 			set cod_err = 1;
@@ -410,7 +413,7 @@ BEGIN
 		END IF;
     ELSE
 		set cod_err = -1;
-		set message = "No se pueden eliminar ordenes que no esten CANCELADAS 3 o ERRONEAS 4";
+		set message = "No se puedo eliminar la porque no esta CANCELADA 3 O ERRONEA 4. O la orden no existe.";
     END IF;
     
 	SELECT cod_err , message;
