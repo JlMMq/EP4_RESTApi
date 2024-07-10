@@ -13,7 +13,7 @@ const insertProducto = async (req, res) =>{
 
         if (result.length > 0) {
             const { cod_err, message } = result[0][0];
-            if (cod_err === 0) {
+            if (cod_err === 1) {
                 return res.status(200).json({ "message": message });
             } else {
                 return res.status(400).json({ "message": message });
@@ -63,7 +63,7 @@ const getProducto = async (req, res)=>{
         const connection = await getConnection();
         const result = await connection.query("CALL SP_GET_PRODUCTO(?)",[id]);
 
-        const productosActivos = result[0].map(producto => ({
+        const productos = result[0].map(producto => ({
             id: producto.int_idProducto,
             nombre: producto.str_nombre,
             descripcion: producto.str_descripcion,
@@ -74,7 +74,7 @@ const getProducto = async (req, res)=>{
             estado: producto.bool_estado
         }));
 
-        res.json(productosActivos);
+        res.json(productos);
     } 
     catch (error) {
         res.status(500);
@@ -94,7 +94,7 @@ const updateProducto = async (req, res) =>{
 
         if (result.length > 0) {
             const { cod_err, message } = result[0][0];
-            if (cod_err === 0) {
+            if (cod_err === 1) {
                 return res.status(200).json({ "message": message });
             } else {
                 return res.status(400).json({ "message": message });

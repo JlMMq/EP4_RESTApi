@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS tb_Productos (
 CREATE TABLE IF NOT EXISTS tb_Clientes(
 	int_idCliente int NOT NULL AUTO_INCREMENT,
     str_nombre varchar(75) NOT NULL,
-    str_correo varchar(30) NULL,
+    str_correo varchar(100) NULL,
     str_telefono varchar(9) NULL,
-    str_direccionEnvio varchar(100) NULL,
+    str_direccionEnvio varchar(150) NULL,
     bool_estado boolean NOT NULL DEFAULT 1,
     primary key (int_idCliente)
 )AUTO_INCREMENT = 1;
@@ -49,7 +49,6 @@ CREATE TABLE IF NOT EXISTS tb_Ordenes(
 -- 3 : CANCELADO
 -- 4 : ERRONEA
 
--- CATEGORIA
 CREATE TABLE IF NOT EXISTS tb_Ordenes_Detalle (
     int_idOrden INT NOT NULL,
     int_idProducto INT NOT NULL,
@@ -61,6 +60,7 @@ CREATE TABLE IF NOT EXISTS tb_Ordenes_Detalle (
     CONSTRAINT fk_producto FOREIGN KEY (int_idProducto) REFERENCES tb_Productos(int_idProducto)
 );
 
+-- CATEGORIA
 DELIMITER $$
 CREATE PROCEDURE SP_INSERT_CATEGORIA(in nombre varchar(50), in descripcion varchar(100))
 BEGIN 
@@ -116,11 +116,11 @@ BEGIN
         VALUES (nombre,descripcion,precio,stock,categoria);
         SET rows_affected = ROW_COUNT();
         IF rows_affected > 0 THEN
-			set cod_err = 0;
-			set message = 'Producto registrado correctamente.'; 
+			set cod_err = 1;
+			set message = "Producto registrado correctamente."; 
 		ELSE
 			set cod_err = -1;
-			set message = 'No se pudo registrar el producto.';
+			set message = "No se pudo registrar el producto.";
 		END IF;
     ELSE
 		set cod_err = -1;
@@ -143,7 +143,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE SP_GET_PRODUCTO(in id int)
 BEGIN 
-	SELECT p.int_idProducto, p.str_nombre, p.str_descripcion, p.dou_precio, p.int_stock, p.int_idCategoria , c.str_nombre, p.bool_estado 
+	SELECT p.int_idProducto, p.str_nombre, p.str_descripcion, p.dou_precio, p.int_stock, p.int_idCategoria , c.str_nombre as str_nombreCategoria, p.bool_estado 
     FROM tb_productos p  
     INNER JOIN tb_categorias c on  p.int_idCategoria = c.int_idCategoria WHERE p.int_idProducto = id;
 END $$
@@ -171,11 +171,11 @@ BEGIN
         
         SET rows_affected = ROW_COUNT();
         IF rows_affected > 0 THEN
-			set cod_err = 0;
-			set message = 'Producto registrado correctamente.'; 
+			set cod_err = 1;
+			set message = "Producto atualizado correctamente."; 
 		ELSE
 			set cod_err = -1;
-			set message = 'No se pudo registrar el producto.';
+			set message = "No se pudo actualizar el producto.";
 		END IF;
     ELSE
 		set cod_err = -1;
@@ -194,5 +194,122 @@ END $$
 DELIMITER ;
 
 -- CLIENTE
+DELIMITER $$
+CREATE PROCEDURE SP_INSERT_CLIENTE(in nombre varchar(75), in correo varchar(100), in telefono varchar(9), in direccionEnvio varchar(150))
+BEGIN
+	INSERT INTO tb_Clientes(str_nombre,str_correo,str_telefono,str_direccionEnvio) values (nombre,correo,telefono,direccionEnvio);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_GET_CLIENTE(in id int)
+BEGIN 
+	SELECT int_idCliente, str_nombre, str_correo,str_telefono,str_direccionEnvio, bool_estado FROM tb_Clientes WHERE int_idCliente = id;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_UPDATE_CLIENTE(in id int, in nombre varchar(75), in correo varchar(100), in telefono varchar(9), in direccionEnvio varchar(150))
+BEGIN
+        UPDATE tb_Cliente 
+        SET str_nombre = nombre, 
+            str_correo = correo,
+            str_telefono = telefono,
+            str_direccionEnvio = direccionEnvio
+        WHERE int_idCliente= id;   
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_DELT_CLIENTE(in id int)
+BEGIN
+	DELETE FROM tb_Cliente WHERE int_idCliente = id;
+END $$
+DELIMITER ;
 
 -- ORDEN
+DELIMITER $$
+CREATE PROCEDURE SP_INSERT_ORDEN_CAB(in idCliente int)
+BEGIN
+	declare cliente_exist int default 0;
+	declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    DECLARE out_id INT;
+	set message = "";
+    
+    SELECT 1 INTO cliente_exist  FROM tb_Clientes WHERE int_idCliente = idCliente limit 1;
+	
+    
+    IF cliente_exist = 1  THEN
+		INSERT INTO Tb_Ordenes (int_idCliente,str_desestado) VALUES (idCliente,"PENDIENTE");
+        SET rows_affected = ROW_COUNT();
+        IF rows_affected > 0 THEN
+			set cod_err = 1;
+			set message = "1 de 2: Se registro la orden parcialmente."; 
+			set out_id = LAST_INSERT_ID(); 
+        ELSE
+			set cod_err = -1;
+			set message = "1 de 2: No se pudo registrar la orden";
+			set out_id = NULL;
+		END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "1 de 2: El cliente ingresado no existe. No se pudo registrar la orden.";
+		set out_id = NULL;
+    END IF;
+    
+    SELECT cod_err , message, out_id ;
+    
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_INSERT_ORDEN_DETLL(in idOrden int, in idProducto int, in cantidad int)
+BEGIN
+	declare producto_exist int default 0;
+	declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    
+    declare precioUnit float default 0;
+    declare stock int default 0;
+    declare subtotal float default 0;
+    
+	set message = "";
+    
+    SELECT 1 INTO producto_exist  FROM tb_Productos WHERE int_idProducto = idProducto limit 1;
+    IF producto_exist = 1  THEN
+		SELECT dou_precio, int_stock INTO precioUnit, stock  FROM tb_Productos WHERE int_idProducto = idProducto limit 1;
+        IF stock >= cantidad THEN
+			set subtotal = cantidad * precioUnit;
+            INSERT INTO tb_Ordenes_Detalle (int_idOrden, int_idProducto, int_cantidad, dou_precioUnit,dou_subtotal)
+            VALUES (idOrden,idProducto,cantidad,precioUnit,subtotal);
+            
+            UPDATE tb_Ordenes
+            SET dou_total = dou_total + subtotal
+            WHERE int_idOrden = idOrden;
+					
+			SET rows_affected = ROW_COUNT();
+			
+			IF rows_affected > 0 THEN
+				set cod_err = 1;
+				set message = "2 de 2: Se registro el producto en la orden."; 
+				
+			ELSE
+				set cod_err = -1;
+				set message = "2 de 2: No se pudo registrar la orden";
+			
+			END IF;
+        ELSE
+            set cod_err = -1;
+			set message = "2 de 2: No hay suficiente stock. No se pudo registrar la orden ";
+        END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "2 de 2: El producto ingresado no existe. No se pudo registrar la orden.";
+    END IF;
+    
+    SELECT cod_err , message;
+END $$
+DELIMITER ;

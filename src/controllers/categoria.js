@@ -53,14 +53,14 @@ const getCategoria = async (req, res)=>{
         const connection = await getConnection();
         const result = await connection.query("CALL SP_GET_CATEGORIA(?)",[id]);
 
-        const categoriasActivas = result[0].map(categoria => ({
+        const categorias = result[0].map(categoria => ({
             id: categoria.int_idCategoria,
             nombre: categoria.str_nombre,
             descripcion: categoria.str_descripcion,
             estado: categoria.bool_estado
         }));
 
-        res.json(categoriasActivas);
+        res.json(categorias);
     } 
     catch (error) {
         res.status(500);
