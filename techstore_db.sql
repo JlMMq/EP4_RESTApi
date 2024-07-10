@@ -313,3 +313,106 @@ BEGIN
     SELECT cod_err , message;
 END $$
 DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_GET_ORDEN_CAB(in id int)
+BEGIN
+	SELECT o.int_idOrden, o.int_idCliente, c.str_nombre,o.dou_total,o.int_estado,o.str_desestado FROM tb_Ordenes o 
+    inner join tb_Clientes c ON o.int_idCliente = c.int_idCliente
+    where o.int_idOrden = id;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_GET_ORDEN_DETLL(in id int)
+BEGIN
+	SELECT o.int_idOrden,o.int_idProducto,p.str_nombre,o.int_cantidad,o.dou_precioUnit,o.dou_subtotal FROM tb_Ordenes_Detalle o 
+    inner join tb_Productos p on o.int_idProducto = p.int_idProducto
+    where o.int_idOrden = id;
+END $$
+DELIMITER ;
+
+-- int_estado : str_desestado
+-- 0 : PENDIENTE
+-- 1 : ENVIADO
+-- 2 : ENTREGADO
+-- 3 : CANCELADO
+-- 4 : ERRONEA
+
+DELIMITER $$
+CREATE PROCEDURE SP_UPDATE_ORDEN(in id int, in estado int)
+BEGIN
+	declare flag int default 0;
+    declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    
+    declare new_estado varchar(20) default "";
+    
+    select 1 into flag from tb_Ordenes where int_idOrden = id;
+    IF flag = 1  THEN
+		IF estado = 0 THEN
+			set new_estado = "PENDIENTE";
+        ELSEIF estado = 1 THEN
+            set new_estado = "ENVIADO";
+        ELSEIF estado = 2 THEN
+            set new_estado = "ENTREGADO";
+        ELSEIF estado = 3 THEN
+            set new_estado = "CANCELADO";
+        ELSEIF estado = 4 THEN
+            set new_estado = "ERRONEO";
+        ELSE
+            set cod_err = -1;
+            set message = "Codigo de estado no admitido";
+        END IF;
+        
+        IF cod_err = 0 THEN
+			UPDATE tb_ordenes 
+            SET int_estado = estado,
+				str_desestado = new_estado
+			WHERE int_idOrden = id;
+        END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "La orden no existe";
+    END IF;
+    
+    SELECT cod_err , message;
+END $$
+DELIMITER ;
+
+-- int_estado : str_desestado
+-- 0 : PENDIENTE
+-- 1 : ENVIADO
+-- 2 : ENTREGADO
+-- 3 : CANCELADO
+-- 4 : ERRONEA
+DELIMITER $$
+CREATE PROCEDURE SP_DELT_ORDEN(in id int)
+BEGIN
+	declare flag int default 0;
+    declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    
+    select 1 into flag from tb_Ordenes where int_idOrden = id and int_estado in (3, 4);
+    
+    IF flag = 1 THEN
+		DELETE FROM tb_Ordenes WHERE int_idOrden = id;
+		DELETE FROM Tb_Ordenes_Detalle WHERE int_idOrden = id;
+        SET rows_affected = ROW_COUNT();
+        IF rows_affected > 0 THEN
+			set cod_err = 1;
+			set message = "Se elimino la orden."; 		
+		ELSE
+			set cod_err = -1;
+			set message = "No se pudo eliminar la orden";
+		END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "No se pueden eliminar ordenes que no esten CANCELADAS 3 o ERRONEAS 4";
+    END IF;
+    
+	SELECT cod_err , message;
+END $$
+DELIMITER ;
