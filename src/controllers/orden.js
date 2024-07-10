@@ -1,5 +1,21 @@
 import {getConnection} from "./../database/database";
 
+/*
+- ENTRADA
+    {
+        "idCliente": 1,
+        "detalle": [
+            {
+                "idProducto": 1, 
+                "cantidad": 1
+            },
+            {
+                "idProducto": 2, 
+                "cantidad": 2
+            }
+        ]
+    }
+*/
 const insertOrden = async (req, res) => {
     const connection = await getConnection();
 
@@ -84,6 +100,13 @@ const getOrden = async (req,res) => {
     }
 };
 
+/*
+- ENTRADA
+    {
+        "id" : "3",
+        "idEstado": "3"
+    }
+*/ 
 const updateOrden = async (req, res) =>{
     try
     {

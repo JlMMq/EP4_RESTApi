@@ -211,7 +211,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE SP_UPDATE_CLIENTE(in id int, in nombre varchar(75), in correo varchar(100), in telefono varchar(9), in direccionEnvio varchar(150))
 BEGIN
-        UPDATE tb_Cliente 
+        UPDATE tb_Clientes 
         SET str_nombre = nombre, 
             str_correo = correo,
             str_telefono = telefono,
@@ -223,7 +223,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE SP_DELT_CLIENTE(in id int)
 BEGIN
-	DELETE FROM tb_Cliente WHERE int_idCliente = id;
+	DELETE FROM tb_Clientes WHERE int_idCliente = id;
 END $$
 DELIMITER ;
 

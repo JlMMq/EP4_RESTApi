@@ -1,6 +1,15 @@
 import {getConnection} from "./../database/database";
 
-
+/*
+- ENTRADA
+    {
+        "nombre": "XIAOMI",
+        "descripcion": "telefono xiaomi 25MPX",
+        "precio": "750",
+        "stock": "5",
+        "idCategoria" : "1"
+    }
+*/
 
 const insertProducto = async (req, res) =>{
     try{
@@ -90,7 +99,7 @@ const updateProducto = async (req, res) =>{
             res.status(400).json({"message":"Bad Request. Please fill all fields."})
         }
         const connection = await getConnection();
-        const result = await connection.query("CALL SP_INSERT_PRODUCTO(?, ?, ?, ?, ? ,?)", [id,nombre, descripcion, precio,stock,idCategoria]);
+        const result = await connection.query("CALL SP_UPDATE_PRODUCTO(?, ?, ?, ?, ? ,?)", [id,nombre, descripcion, precio,stock,idCategoria]);
 
         if (result.length > 0) {
             const { cod_err, message } = result[0][0];
@@ -121,9 +130,9 @@ const deleteProducto = async (req,res) => {
         const result = await connection.query("CALL SP_DELT_PRODUCTO(?)", [id]);
 
         if (result.affectedRows > 0) {
-            res.status(200).json({ "message": "Categoria eliminada correctamente" });
+            res.status(200).json({ "message": "Producto eliminado correctamente" });
         } else {
-            res.status(400).json({ "message": "No se pudo eliminar la categoria o el codigo de la categoria no existe." });
+            res.status(400).json({ "message": "No se pudo eliminar el producto o el codigo del producto no existe." });
         }
     }
     catch(error)
