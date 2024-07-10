@@ -100,6 +100,98 @@ END $$
 DELIMITER ;
 
 -- PRODUCTO
+DELIMITER $$
+CREATE PROCEDURE SP_INSERT_PRODUCTO(in nombre varchar(50), in descripcion varchar(100), in precio float, in stock int, in categoria int)
+BEGIN
+	declare categoria_exist int default 0;
+	declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    
+    set message = "El producto no se pudo registrar.";
+    
+    SELECT 1 INTO categoria_exist  FROM tb_Categorias WHERE int_idCategoria = categoria limit 1;
+    IF categoria_exist = 1  THEN
+		INSERT INTO tb_Productos (str_nombre, str_descripcion, dou_precio, int_stock, int_idCategoria)
+        VALUES (nombre,descripcion,precio,stock,categoria);
+        SET rows_affected = ROW_COUNT();
+        IF rows_affected > 0 THEN
+			set cod_err = 0;
+			set message = 'Producto registrado correctamente.'; 
+		ELSE
+			set cod_err = -1;
+			set message = 'No se pudo registrar el producto.';
+		END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "La categoria que se quiere asociar al producto no existe.";
+    END IF;
+    
+    SELECT cod_err , message ;
+END $$	
+DELIMITER ;
+
+DELIMITER $$ 
+CREATE PROCEDURE SP_LIST_PRODUCTO_ACTIVO()
+BEGIN
+	SELECT p.int_idProducto, p.str_nombre, p.str_descripcion, p.dou_precio, p.int_stock, p.int_idCategoria , c.str_nombre as str_nombreCategoria 
+    FROM tb_productos p  
+    INNER JOIN tb_categorias c on  p.int_idCategoria = c.int_idCategoria WHERE p.bool_estado = true;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_GET_PRODUCTO(in id int)
+BEGIN 
+	SELECT p.int_idProducto, p.str_nombre, p.str_descripcion, p.dou_precio, p.int_stock, p.int_idCategoria , c.str_nombre, p.bool_estado 
+    FROM tb_productos p  
+    INNER JOIN tb_categorias c on  p.int_idCategoria = c.int_idCategoria WHERE p.int_idProducto = id;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_UPDATE_PRODUCTO(in id int,in nombre varchar(50), in descripcion varchar(100), in precio float, in stock int, in categoria int)
+BEGIN
+	declare categoria_exist int default 0;
+	declare cod_err int default 0;
+    declare message varchar(500);
+    DECLARE rows_affected INT;
+    
+    set message = "El producto no se pudo actualizar.";
+    
+    SELECT 1 INTO categoria_exist  FROM tb_Categorias WHERE int_idCategoria = categoria limit 1;
+    IF categoria_exist = 1  THEN
+		UPDATE tb_productos
+        SET str_nombre = nombre,
+			str_descripcion = descripcion,
+            dou_precio = precio,
+            int_stock = stock,
+            int_idCategoria = categoria
+        WHERE int_idProducto = id;
+        
+        SET rows_affected = ROW_COUNT();
+        IF rows_affected > 0 THEN
+			set cod_err = 0;
+			set message = 'Producto registrado correctamente.'; 
+		ELSE
+			set cod_err = -1;
+			set message = 'No se pudo registrar el producto.';
+		END IF;
+    ELSE
+		set cod_err = -1;
+		set message = "La categoria que se quiere asociar al producto no existe.";
+    END IF;
+    
+    SELECT cod_err , message ;
+END $$	
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_DELT_PRODUCTO(in id int)
+BEGIN
+	DELETE FROM tb_Productos WHERE int_idProducto = id;
+END $$
+DELIMITER ;
 
 -- CLIENTE
 
