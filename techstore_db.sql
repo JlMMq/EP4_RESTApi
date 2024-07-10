@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS tb_Ordenes(
 -- 3 : CANCELADO
 -- 4 : ERRONEA
 
+-- CATEGORIA
 CREATE TABLE IF NOT EXISTS tb_Ordenes_Detalle (
     int_idOrden INT NOT NULL,
     int_idProducto INT NOT NULL,
@@ -66,3 +67,40 @@ BEGIN
 	INSERT INTO tb_Categorias(str_nombre,str_descripcion) VALUES (nombre,descripcion);
 END $$
 DELIMITER ;
+
+DELIMITER $$ 
+CREATE PROCEDURE SP_LIST_CATEGORIA_ACTIVO()
+BEGIN
+	SELECT int_idCategoria, str_nombre, str_descripcion FROM tb_categorias WHERE bool_estado = true;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_GET_CATEGORIA(in id int)
+BEGIN 
+	SELECT int_idCategoria, str_nombre, str_descripcion , bool_estado FROM tb_categorias WHERE int_idCategoria = id;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_UPDATE_CATEGORIA(in id int, in nombre varchar(50), in descripcion varchar(100))
+BEGIN
+        UPDATE tb_Categorias 
+        SET str_nombre = nombre, 
+            str_descripcion = descripcion 
+        WHERE int_idCategoria = id;   
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE SP_DELT_CATEGORIA(in id int)
+BEGIN
+	DELETE FROM tb_Categorias WHERE int_idCategoria = id;
+END $$
+DELIMITER ;
+
+-- PRODUCTO
+
+-- CLIENTE
+
+-- ORDEN
